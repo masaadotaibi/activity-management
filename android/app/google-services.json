@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "180955428147",
+    "firebase_url": "https://amatuer-todo.firebaseio.com",
+    "project_id": "amatuer-todo",
+    "storage_bucket": "amatuer-todo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:180955428147:android:d06e69495a9d6bd7d6ba46",
+        "android_client_info": {
+          "package_name": "com.Firebase_Auth_with_GetX_by_Masaad.the_todo_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "180955428147-23i8s9gomaj5seqk6em2rsp272t7v50q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCB-WrRWCA2Oa8co1PwS2X7OlZ6OsvBxYI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "180955428147-23i8s9gomaj5seqk6em2rsp272t7v50q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

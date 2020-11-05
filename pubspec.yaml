@@ -1,0 +1,54 @@
+name: the_todo_app
+description: A new Flutter project.
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  firebase_auth:
+  cloud_firestore: ^0.13.7
+  get:
+  get_storage:
+  cupertino_icons: ^1.0.0
+  intl: ^0.16.1 # date formatter
+  circular_check_box: ^1.0.2
+  dotted_border: ^1.0.6
+  font_awesome_flutter: ^8.8.1
+  flutter_spinkit: "^4.1.2"
+  json_annotation: ^3.1.0
+  uuid: 2.2.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  json_serializable: ^3.5.0
+  build_runner: ^1.10.3
+  build_verify: ^1.1.1 # for testing
+  path: ^1.7.0 # for testing
+  test: ^1.15.4 # for testing
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/no_tasks.png
+    - assets/images/thought_bubble.png
+
+  fonts:
+    - family: OpenSans
+      fonts:
+        - asset: assets/fonts/OpenSans-Regular.ttf
+        - asset: assets/fonts/OpenSans-Bold.ttf
+          weight: 700
+    - family: Quicksand
+      fonts:
+        - asset: assets/fonts/Quicksand-Regular.ttf
+        - asset: assets/fonts/Quicksand-Bold.ttf
+          weight: 700
