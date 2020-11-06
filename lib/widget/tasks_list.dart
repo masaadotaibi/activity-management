@@ -4,25 +4,14 @@ import 'package:flutter/material.dart';
 import '../models/task.dart';
 import './task_item.dart';
 
-class TasksList extends StatefulWidget {
+class TasksList extends StatelessWidget {
   final List<TaskModel> tasks;
   final Function tickTask;
 
   TasksList({@required this.tasks, @required this.tickTask});
-
-  @override
-  _TasksListState createState() => _TasksListState();
-}
-
-class _TasksListState extends State<TasksList> {
-  @override
-  void initState() {
-    print('the tasks_list has been created');
-  }
-
   @override
   Widget build(BuildContext context) {
-    return widget.tasks.isEmpty
+    return tasks.isEmpty
         ? LayoutBuilder(builder: (context, constraints) {
             print('the layout builder has been entered');
             return Column(
@@ -47,7 +36,7 @@ class _TasksListState extends State<TasksList> {
                   ),
                 ),
                 Center(
-                  child: Text('Press the plus \'\+\' button! And do it!',
+                  child: Text('Press \'\+\' Button! To Save it for Later!',
                       style: Theme.of(context).textTheme.headline6),
                 )
               ],
@@ -58,16 +47,41 @@ class _TasksListState extends State<TasksList> {
               Container(
                 width: double.infinity,
                 padding:
-                    EdgeInsets.only(right: 30, left: 20, top: 20, bottom: 15),
+                    EdgeInsets.only(right: 11, left: 11, top: 20, bottom: 3),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Daily Tasks',
-                      style: TextStyle(
-                        fontSize: 26.0,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          flex: 10,
+                          child: Text(
+                            'Daily Tasks Daily Tasks Daily Tasks Daily Tasks Daily Tasks Daily Tasks',
+                            style: TextStyle(
+                              fontSize: 26.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Flexible(
+                          flex: 1,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.more_vert,
+                              color: Colors.grey.shade700,
+                            ),
+                            onPressed: () {
+                              /* // TODO: add a pop view of actions. including the following actions:-
+                                1- delete category(ask the user if he/she also wants to delete its tasks or move it to another category). 
+                                2- rename category. 
+                                3- Add task to this category. 
+                                4- Activity Log of the category.
+                              */
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                     Divider(thickness: 2),
                   ],
@@ -76,11 +90,9 @@ class _TasksListState extends State<TasksList> {
               Expanded(
                 child: ListView.builder(
                   itemBuilder: (context, index) {
-                    print('the listview.builder has been entered');
-                    return TaskItem(
-                        task: widget.tasks[index], tickTask: widget.tickTask);
+                    return TaskItem(task: tasks[index], tickTask: tickTask);
                   },
-                  itemCount: widget.tasks.length,
+                  itemCount: tasks.length,
                 ),
               ),
             ],

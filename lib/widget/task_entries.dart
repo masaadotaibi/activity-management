@@ -60,7 +60,7 @@ class _TaskEntriesState extends State<TaskEntries> {
   final _priorities = <DropdownMenuItem>[
     DropdownMenuItem(
       child: Text(
-        'Low !',
+        '!',
         style: TextStyle(
           color: Colors.blue,
         ),
@@ -69,7 +69,7 @@ class _TaskEntriesState extends State<TaskEntries> {
     ),
     DropdownMenuItem(
       child: Text(
-        'Med !!',
+        '!!',
         style: TextStyle(
           color: Colors.yellow[800],
         ),
@@ -78,7 +78,7 @@ class _TaskEntriesState extends State<TaskEntries> {
     ),
     DropdownMenuItem(
       child: Text(
-        'High !!!',
+        '!!!',
         style: TextStyle(
           color: Colors.red[800],
         ),
@@ -122,6 +122,7 @@ class _TaskEntriesState extends State<TaskEntries> {
     // adding the task to the database
     PersonalFolderCollection().createTask(
       userId: Get.find<AuthController>().user.uid,
+      // TODO: add categoryId
       newTtaskTitle: _taskTitleController.text,
       dueDate: _dateTime,
       state: _selectedStateValue,
@@ -333,10 +334,10 @@ class _TaskEntriesState extends State<TaskEntries> {
                     ),
                     hint: Text(
                       _selectedPriorityValue == 'low'
-                          ? 'Low !'
+                          ? '!'
                           : _selectedPriorityValue == 'medium'
-                              ? 'Med !!'
-                              : 'High !!!',
+                              ? '!!'
+                              : '!!!',
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -345,18 +346,52 @@ class _TaskEntriesState extends State<TaskEntries> {
             ),
           ),
           Container(
-            width: mediaQuery.size.width * 0.22,
-            child: RaisedButton(
+            height: mediaQuery.size.height * 0.073,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 10.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Add'),
-                  Icon(Icons.arrow_right),
+                  Container(
+                    padding: EdgeInsets.only(left: 10, right: 10),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: _stateColorIndicator, width: 2),
+                    ),
+                    child: DropdownButton(
+                      isDense: false,
+                      items: [DropdownMenuItem(child: Text('datadatff'))],
+                      // icon: null,
+                      // * icon: _selectedStateValue == 'in-progress'
+                      // *     ? Icon(
+                      // *         Icons.timelapse,
+                      // *         color: Colors.green,
+                      // *       )
+                      // *     : Icon(
+                      // *         Icons.browser_not_supported,
+                      // *         color: _stateColorIndicator,
+                      // *       ),
+                      // the default line below the dropdown list entry can be omitted giving it an empty value (null won't work)
+                      underline: Text(''),
+                      onChanged: (value) {
+                        //
+                      },
+                    ),
+                  ),
+                  RaisedButton(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text('Add'),
+                        Icon(Icons.arrow_right),
+                      ],
+                    ),
+                    color: Theme.of(context).primaryColor,
+                    textColor: Theme.of(context).textTheme.button.color,
+                    onPressed: _addTaskFromEntries,
+                  ),
                 ],
               ),
-              color: Theme.of(context).primaryColor,
-              textColor: Theme.of(context).textTheme.button.color,
-              onPressed: _addTaskFromEntries,
             ),
           ),
         ],

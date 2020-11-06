@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/state_manager.dart';
+import 'package:the_todo_app/models/category.dart';
 import 'package:the_todo_app/models/task.dart';
-import 'package:the_todo_app/screens/categories_screen.dart';
 import 'package:the_todo_app/services/personal_folder_collection.dart';
 import 'package:the_todo_app/widget/task_entries.dart';
 import 'package:the_todo_app/widget/tasks_list.dart';
@@ -10,7 +10,8 @@ import '../controllers/auth_controller.dart';
 import '../controllers/tasks_controller.dart';
 import '../controllers/user_controller.dart';
 import '../services/personal_folder_collection.dart';
-import '../widget/task_card.dart';
+
+//
 
 class PersonalFolder extends StatefulWidget {
   @override
@@ -19,18 +20,72 @@ class PersonalFolder extends StatefulWidget {
 
 class _PersonalFolderState extends State<PersonalFolder> {
   List<TaskModel> userTasks = [];
-  List<String> categories;
+  List<Category> categories = [];
   List<TaskModel> completedTasks = [];
 
   void _tickTask(String taskId) {
     PersonalFolderCollection().updateTaskStatus(
-        'completed'.toLowerCase(), Get.find<AuthController>().user.uid, taskId);
+      newState: 'completed'.toLowerCase(),
+      userId: Get.find<AuthController>().user.uid,
+      taskId: taskId,
+      // TODO: add categoryId
+    );
     // addingcollection of completed tasks in DB will cost more (changing the state, then add the task to another collection)
     setState(() {
       completedTasks
           .add(userTasks.firstWhere((TaskModel task) => task.taskId == taskId));
       userTasks.removeWhere((TaskModel task) => task.taskId == taskId);
     });
+  }
+
+  Future categoryDialog() {
+    return Get.defaultDialog(
+      content: Container(
+        height: 170,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            SizedBox(height: 5.0),
+            TextFormField(),
+            TextFormField(),
+            Spacer(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                RaisedButton(
+                  onPressed: () {
+                    Get.back();
+                  },
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  color: Theme.of(context).errorColor,
+                ),
+                RaisedButton(
+                  onPressed: () {},
+                  child: Text(
+                    'Add',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  color: Colors.green,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      title: "Add Category name",
+      barrierDismissible: false,
+    );
   }
 
   @override
@@ -70,9 +125,12 @@ class _PersonalFolderState extends State<PersonalFolder> {
           },
         ),
         PopupMenuButton(onSelected: (value) {
-          //
+          if (value == OptionsButton.Category) {
+            categoryDialog();
+          }
         }, itemBuilder: (_) {
           return [
+            // TODO: make the category addition be a sole button in the personal folder screen(without being in a pop up view) and remove "Select tasks" button for future considerations
             PopupMenuItem(
               child: Row(
                 children: [
@@ -107,7 +165,7 @@ class _PersonalFolderState extends State<PersonalFolder> {
     return Scaffold(
       appBar: appBar,
       body: Column(
-        // ! you might need SingleChildScrollView surrnounding this aboce Column
+        // ! you might need SingleChildScrollView surrnounding this above Column
         children: <Widget>[
           // 32 now here we view our tasks we added to the personal folder
           GetX<TasksController>(
@@ -120,8 +178,10 @@ class _PersonalFolderState extends State<PersonalFolder> {
                 print(
                     '${taskController.tasks.runtimeType} in the Personal folder view');
                 userTasks = taskController.tasks
-                    .where((task) =>
-                        task.state.toLowerCase() != 'completed'.toLowerCase())
+                    .where(
+                      (task) =>
+                          task.state.toLowerCase() != 'completed'.toLowerCase(),
+                    )
                     .toList(); // ! this should change later to the state rather than boolean
                 print(userTasks.length);
                 return Expanded(

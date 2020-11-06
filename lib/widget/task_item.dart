@@ -36,12 +36,13 @@ class TaskItem extends StatelessWidget {
     print('taskItem entered');
     return Card(
       elevation: 5,
-      margin: EdgeInsets.symmetric(vertical: 5, horizontal: 3),
+      margin: EdgeInsets.symmetric(vertical: 2, horizontal: 3),
       child: Container(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Flexible(
+              flex: 25,
               child: Center(
                 child: Container(
                   decoration: BoxDecoration(
@@ -87,7 +88,7 @@ class TaskItem extends StatelessWidget {
               // )
             ),
             Expanded(
-              flex: 3,
+              flex: 61,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,9 +123,9 @@ class TaskItem extends StatelessWidget {
               ),
             ),
             Flexible(
-              flex: 2,
+              flex: 48,
               child: SizedBox(
-                width: MediaQuery.of(context).size.width * 0.35,
+                width: MediaQuery.of(context).size.width * 0.42,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -139,15 +140,15 @@ class TaskItem extends StatelessWidget {
                         onPressed: () {
                           // TODO: the user should click this to quickly change the date of the task
                         }),
-                    SizedBox(width: 10),
+                    SizedBox(width: 5),
                     Text(
                       task.priority == 'low'
-                          ? 'Low'
+                          ? 'Low !'
                           : task.priority == 'high'
-                              ? 'High'
-                              : 'Medium',
+                              ? 'High !!!'
+                              : 'Medium !!',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 17,
                         fontWeight: _priorityFontWeight,
                         color: _priorityColorIndicator,
                       ),
