@@ -1,10 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:json_annotation/json_annotation.dart';
+import 'package:the_todo_app/models/subtask.dart';
 import '../models/category.dart';
 import 'package:the_todo_app/models/comment.dart';
-import 'package:uuid/uuid.dart';
 import '../models/task.dart';
 import '../models/user.dart';
+
+/*
+CHANGE THE:
+  1- TASKS ADDITION TO BE ON A NEW SUBCOLLECTION BESIDE THE CATEGORIES SUBCOLLECTION
+  2- WAY OF STREAMING TASKS TO BE ON THE SUBCOLLECTION ITSELF(ALL TASKS)
+  3- CONTROLLER WAY OF HANDLING A TASK (DON'T INJECT CATEGORY ID TO IT)
+  4- VIEW TO WHICH WE SHOW THE TASKS AND ITS CORRESPONDING CATEGORY
+*/
 
 class PersonalFolderCollection {
   // 15 this is the instance we need to handle Firestore operations
@@ -12,53 +19,57 @@ class PersonalFolderCollection {
 
   // 16 now we create the user model in the database from Firebase Service, so we need all the info (UserModel we built)
   Future<bool> createNewUser(UserModel user) async {
+    print('it entered createNewUser function');
     try {
-      await _firestore.collection('users').document(user.id).setData({
-        'name': user.name,
-        'email': user.email,
-      });
+      print(
+          'the user id in createNewUser function is ${user.id} and name is ${user.name}');
+      await _firestore.collection('users').document(user.id).setData(
+        {
+          'name': user.name,
+          'email': user.email,
+        },
+      );
+      print(
+          'did pass the users collection creation in createNewUser function?');
+      createCategory(user.id, 'Tasks List:');
       return true;
     } catch (e) {
-      print(e);
+      print('$e create New user exception');
       return false;
     }
   }
 
-  // 17 to retrieve the user model we need just their uid
+  // To retrieve the user model we need just their uid
   Future<UserModel> getUser(String uid) async {
     try {
-      // 17.1 we first bring the user data from the users collection with the user 'uid' injected, then save it as document query
+      // We first bring the user data from the users collection with the user 'uid' injected, then save it as document query
       DocumentSnapshot _doc =
           await _firestore.collection('users').document(uid).get();
 
-      // 17.2 we then feed that data to our UserModel and return it back to the user
+      // Feed that data to our UserModel and return it back to the user
       return UserModel.fromDocumentSnapshot(_doc);
     } catch (e) {
-      print(e);
+      print('$e get user exception');
       rethrow;
     }
   }
 
   Future<void> createCategory(String userId, String categoryName) async {
-    // TODO: create the category
-    String categoryId = Uuid().v1();
+    final newCatDocument = _firestore
+        .collection('users')
+        .document(userId)
+        .collection('categories')
+        .document();
 
-    List<TaskModel> _tasks = List<TaskModel>();
+    final newCategory = Category(newCatDocument.documentID, categoryName);
 
-    final categoryModel = Category(categoryId, categoryName, _tasks);
+    // Formatting category Dart object to be JSON object
+    final category = newCategory.toJson();
 
     try {
-      // !
-      final category = categoryModel.toJson();
-      // !
-      await _firestore
-          .collection('users')
-          .document(userId)
-          .collection('personalFolder')
-          .document(categoryId)
-          .setData(category);
+      await newCatDocument.setData(category);
     } catch (e) {
-      print(e);
+      print('$e create category exception');
     }
   }
 
@@ -73,10 +84,10 @@ class PersonalFolderCollection {
     // TODO: change the category of id 'categoryId' to the name 'newName'
   }
 
-  // 18 now we finished setting up Firestore for the authentication side, and we are now going to use it within our app
+  // Now we finished setting up Firestore for the authentication side, and we are now going to use it within our app
   // and we are going to use it directly when we create a user in Firebase authentication service, and when we log in
 
-  // 21 we want to add the created task at the personal folder to the database
+  // Add the created task to the tasks collection at the database
   Future<void> createTask({
     String userId,
     String categoryId,
@@ -85,15 +96,19 @@ class PersonalFolderCollection {
     String state,
     String priority,
   }) async {
-    // TODO: add due date, priority, state, and category fields
-    String newTaskId = Uuid().v1();
-
     List<TaskModel> subtasksList = List<TaskModel>();
 
     List<Comment> commentsList = List<Comment>();
 
+    final newTaskDocument = _firestore
+        .collection('users')
+        .document(userId)
+        .collection('tasks')
+        .document();
+
     TaskModel newTask = TaskModel(
-      taskId: newTaskId,
+      categoryId: categoryId,
+      taskId: newTaskDocument.documentID,
       taskTitle: newTtaskTitle,
       dueDate: dueDate,
       state: state,
@@ -106,63 +121,48 @@ class PersonalFolderCollection {
     final jsonTask = newTask.toJson();
 
     try {
-      await _firestore
-          .collection('users')
-          .document(userId)
-          .collection('personalFolder')
-          //     .document(categoryId) // ! this should be instead of the below .document(newTaskId).setData(jsonTask);
-          //     .updateData(
-          //   {
-          //     'tasks': FieldValue.arrayUnion([jsonTask])
-          //   },
-          // )
-          // * .collection('tasks') // we could use an id of task if we wish to add a collection of 'tasks' to give the id for document
-          .document(newTaskId)
-          .setData(jsonTask);
-      print(
-          'Here is the database, take addTask on the line. AddTask: I have added the task, thanks!');
+      await newTaskDocument.setData(jsonTask);
     } catch (e) {
-      print(e);
+      print('$e create task exception');
       rethrow;
     }
   }
 
-  Future<void> deleteTask(String categoryId, String taskId) async {
+  Future<void> deleteTask(String parentTaskId) async {
     // TODO: delete a task
   }
 
   Future<void> createSubtask({
     String userId,
     String parentTaskId,
-    String categoryId,
     String subtaskTitle,
     DateTime dueDate,
     String state,
     String priority,
   }) async {
-    String subtaskId = Uuid().v1();
+    final newSubtaskDocument = _firestore
+        .collection('users')
+        .document(userId)
+        .collection('tasks')
+        .document(parentTaskId)
+        .collection('subtasks')
+        .document();
 
-    TaskModel newSubtask = TaskModel(
-      taskId: subtaskId,
-      taskTitle: subtaskTitle,
+    Subtask newSubtask = Subtask(
+      parentTaskId: parentTaskId,
+      subtaskId: newSubtaskDocument.documentID,
+      subtaskTitle: subtaskTitle,
       dueDate: dueDate,
-      state: state,
-      priority: priority,
+      subtaskState: state,
+      subtaskPriority: priority,
     );
 
-    Map<String, dynamic> subtaskJSON = newSubtask.toJson();
+    final subtaskJSON = newSubtask.toJson();
 
     try {
-      final parentTaskReference = await _firestore
-          .collection('users')
-          .document(userId)
-          .collection('personalFolder')
-          .document(categoryId)
-          .get();
-      final tasks = parentTaskReference.data['tasks'];
-      // TODO: loop through the tasks and add this new subtask to it
+      await newSubtaskDocument.setData(subtaskJSON);
     } catch (e) {
-      print(e);
+      print('$e create subtask exception');
     }
   }
 
@@ -170,47 +170,39 @@ class PersonalFolderCollection {
     // TODO: delete a subtask
   }
 
-  // this is the stream we are going to provide to the perosnal folder
+  // The stream to provide to the tasks
   Stream<List<TaskModel>> personalTasksStream(String userId) {
-    print(
-        'personalTaskStream method of PersonalFolderCollection has been entered');
-    // now we bring tasks data of user of the 'userId' parameter provided
-    return _firestore
+    final tasksSnapshot = _firestore
         .collection('users')
         .document(userId)
-        .collection('personalFolder')
-        // .orderBy('dueDate', descending: true)
-        .snapshots()
-        .map((QuerySnapshot query) {
-      // In the above brought anonymous function query snapshot, we have all the documents we need, we only need to map it
-      // to models, by making a tasks list, and adding each document to the list of models, then return it
-      List<TaskModel> _tasksList = List<TaskModel>();
-      print('${query.documents.length} would you work?');
-      query.documents.forEach((element) {
-        // we recieve a document snapshot and we should use the snapshots converter to actual tasks model (.fromDocumentSnapshot),
-        // this way we map each database document snapshot to actual task by fetching the data inside each document snapshot into
-        // actual TaskModel
-        print(
-            '${element.data['subtasks'].runtimeType} the element data in the stream of QuerySnapshot');
-        _tasksList.add(TaskModel.fromJson(element.data));
-      });
-      print('${_tasksList.runtimeType} out of the QuerySnapshot criteria');
-      return _tasksList;
-    });
+        .collection('tasks')
+        .snapshots();
+
+    return tasksSnapshot.map(
+      (QuerySnapshot query) {
+        List<TaskModel> _tasksList = List<TaskModel>();
+        query.documents.forEach(
+          (DocumentSnapshot taskDocument) {
+            _tasksList.add(TaskModel.fromJson(taskDocument.data));
+          },
+        );
+        return _tasksList;
+      },
+    );
   }
 
   Stream<List<Category>> personalFolderCategoriesStream(String userId) {
-    return _firestore
+    final categoriesSnapshot = _firestore
         .collection('users')
         .document(userId)
-        .collection('personalFolder')
-        .snapshots()
-        .map(
+        .collection('categories')
+        .snapshots();
+
+    return categoriesSnapshot.map(
       (QuerySnapshot query) {
         List<Category> _categoriesList = List<Category>();
-        // TODO: bring the 'tasks' field (which is the array)
         query.documents.forEach(
-          (element) {
+          (DocumentSnapshot element) {
             _categoriesList.add(Category.fromJson(element.data));
           },
         );
@@ -219,29 +211,21 @@ class PersonalFolderCollection {
     );
   }
 
-  // now we need to display data in the screen
   Future<void> updateTaskStatus({
     String newState,
     String userId,
     String taskId,
     String categoryId,
   }) async {
-    //
-    // final categorySnapshot = await _firestore
-    //     .collection('personalFolder')
-    //     .document(categoryId)
-    //     .get();
-    // TODO: use categorySnaphot['tasks'] to bring tasks, then loop through it to find your task to update its state
+    final taskDocument = _firestore
+        .collection('users')
+        .document(userId)
+        .collection('tasks')
+        .document(taskId);
     try {
-      // TODO: update the data using the new category feature
-      _firestore
-          .collection('users')
-          .document(userId)
-          .collection('personalFolder')
-          .document(taskId)
-          .updateData({'taskState': newState});
+      await taskDocument.updateData({'taskState': newState});
     } catch (e) {
-      print(e);
+      print('$e update task exception');
       rethrow;
     }
   }

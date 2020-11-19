@@ -13,6 +13,7 @@ dependencies:
     sdk: flutter
 
   firebase_auth:
+  firebase_core:
   cloud_firestore: ^0.13.7
   get:
   get_storage:

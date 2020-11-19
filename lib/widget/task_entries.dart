@@ -3,20 +3,22 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:the_todo_app/controllers/auth_controller.dart';
-import 'package:the_todo_app/models/task.dart';
+import 'package:the_todo_app/controllers/category_controller.dart';
 import 'package:the_todo_app/services/personal_folder_collection.dart';
 
 class TaskEntries extends StatefulWidget {
+  final categories =
+      Get.put<CategoryController>(CategoryController()).categories;
   @override
   _TaskEntriesState createState() => _TaskEntriesState();
 }
 
 class _TaskEntriesState extends State<TaskEntries> {
   final _taskTitleController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  // ! final _descriptionController = TextEditingController();
   final _tasktTitleFocusNode = FocusNode();
+
   // TODO: comment adding feature
 
   DateTime _dateTime;
@@ -93,9 +95,13 @@ class _TaskEntriesState extends State<TaskEntries> {
   // priority is by default 'low', and user can switch it to medium and high
   var _selectedPriorityValue = 'low';
 
+  var _selectedCategoryIdValue;
+
   @override
   void initState() {
     super.initState();
+
+    _selectedCategoryIdValue = widget.categories[0].categoryId;
 
     // setting a listner for the task title entry focus node so once it hasn't the focus, it brings it back to it
     _tasktTitleFocusNode.addListener(() {
@@ -106,7 +112,7 @@ class _TaskEntriesState extends State<TaskEntries> {
     });
   }
 
-  // 22 this is the continuation of 22 step
+  // Adds the task entered in the bottom sheet to the database (if s)
   void _addTaskFromEntries() {
     final givenTaskTitle = _taskTitleController.text;
     // 22.2 we first check before adding the task
@@ -115,14 +121,14 @@ class _TaskEntriesState extends State<TaskEntries> {
     }
 
     if (_dateTime == null) {
-      // ! for now, if there isn't a date, it won't be set (undated - the user can either decide the date later or just do it anytime)
-      // _dateTime = DateTime.now();
+      // If there isn't a date, it won't be set, thus undated (the user can either decide the date later)
+      // ! _dateTime = DateTime.now();
     }
 
-    // adding the task to the database
+    // Adding the task to the database
     PersonalFolderCollection().createTask(
       userId: Get.find<AuthController>().user.uid,
-      // TODO: add categoryId
+      categoryId: _selectedCategoryIdValue,
       newTtaskTitle: _taskTitleController.text,
       dueDate: _dateTime,
       state: _selectedStateValue,
@@ -193,9 +199,9 @@ class _TaskEntriesState extends State<TaskEntries> {
             focusNode: _tasktTitleFocusNode,
             autofocus: true,
           ),
-          // this is the container which encapsulates the row of date, state, and priority buttons
+          // This is the container which encapsulates the row of date, state, and priority buttons
           Container(
-            // the height here indicates the fit height of the components of the row
+            // The height here indicates the fit height of the components of the row
             height: mediaQuery.size.height * 0.053,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -255,91 +261,44 @@ class _TaskEntriesState extends State<TaskEntries> {
                 // !   ),
                 // !   child: Text("Personal tasks"),
                 // ! ),
-                // this is the box of choosing the state of the task in the personal folder
+                SizedBox(
+                  width: 10,
+                ),
+                // This continaer encapsulates the categories drop down list to choose from
                 Container(
                   padding: const EdgeInsets.only(left: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: _stateColorIndicator, width: 2),
                   ),
                   child: DropdownButton(
-                    isDense: false,
-                    items: _states,
-                    // icon: null,
-                    // * icon: _selectedStateValue == 'in-progress'
-                    // *     ? Icon(
-                    // *         Icons.timelapse,
-                    // *         color: Colors.green,
-                    // *       )
-                    // *     : Icon(
-                    // *         Icons.browser_not_supported,
-                    // *         color: _stateColorIndicator,
-                    // *       ),
+                    items: widget.categories
+                        .map(
+                          (category) => DropdownMenuItem(
+                            child: Text(
+                              category.categoryName,
+                              softWrap: true,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            value: category.categoryId,
+                          ),
+                        )
+                        .toList(),
                     // the default line below the dropdown list entry can be omitted giving it an empty value (null won't work)
                     underline: Text(''),
                     onChanged: (value) {
                       setState(
                         () {
-                          _selectedStateValue = value;
+                          _selectedCategoryIdValue = value;
                         },
                       );
                     },
-                    value: _selectedStateValue,
+                    value: _selectedCategoryIdValue,
                     style: TextStyle(
-                      color: _stateColorIndicator,
-                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
-                    hint: Text(
-                      _selectedStateValue == 'in-progress'
-                          ? 'In Progress'
-                          : 'Not Started',
-                      style: TextStyle(color: Colors.red
-                          // color: _selectedStateValue == 'in-progress'
-                          //     ? Colors.greenAccent[400]
-                          //     : Colors.grey[700],
-                          // fontWeight: _selectedStateValue == 'in-progress'
-                          //     ? FontWeight.w900
-                          //     : FontWeight.w900,
-                          ),
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 10,
-                ),
-                // this is the box of choosing the priority of the task in the personal folder
-                // TODO: fix the problem of the dropdown menu item 'High' being hidden by keyboard when it is already set as 'Low'
-                Container(
-                  padding: const EdgeInsets.only(left: 15),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    border:
-                        Border.all(color: _priorityColorIndicator, width: 2),
-                  ),
-                  child: DropdownButton(
-                    isDense: false,
-                    items: _priorities,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedPriorityValue = value;
-                      });
-                    },
-                    underline: Text(''),
-                    value: _selectedPriorityValue,
-                    style: TextStyle(
-                      color: _priorityColorIndicator,
-                      fontWeight: _priorityFontWeight,
-                      fontSize: 17,
-                    ),
-                    hint: Text(
-                      _selectedPriorityValue == 'low'
-                          ? '!'
-                          : _selectedPriorityValue == 'medium'
-                              ? '!!'
-                              : '!!!',
-                      textAlign: TextAlign.center,
-                    ),
+                    hint: Text(widget.categories[0].categoryName),
                   ),
                 ),
               ],
@@ -352,30 +311,70 @@ class _TaskEntriesState extends State<TaskEntries> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // this is the box of choosing the state of the task in the personal folder
                   Container(
-                    padding: EdgeInsets.only(left: 10, right: 10),
+                    padding: const EdgeInsets.only(left: 10),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: _stateColorIndicator, width: 2),
                     ),
                     child: DropdownButton(
                       isDense: false,
-                      items: [DropdownMenuItem(child: Text('datadatff'))],
-                      // icon: null,
-                      // * icon: _selectedStateValue == 'in-progress'
-                      // *     ? Icon(
-                      // *         Icons.timelapse,
-                      // *         color: Colors.green,
-                      // *       )
-                      // *     : Icon(
-                      // *         Icons.browser_not_supported,
-                      // *         color: _stateColorIndicator,
-                      // *       ),
+                      items: _states,
                       // the default line below the dropdown list entry can be omitted giving it an empty value (null won't work)
                       underline: Text(''),
                       onChanged: (value) {
-                        //
+                        setState(
+                          () {
+                            _selectedStateValue = value;
+                          },
+                        );
                       },
+                      value: _selectedStateValue,
+                      style: TextStyle(
+                        color: _stateColorIndicator,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                      ),
+                      hint: Text(
+                        _selectedStateValue == 'in-progress'
+                            ? 'In Progress'
+                            : 'Not Started',
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    ),
+                  ),
+                  // this is the box of choosing the priority of the task in the personal folder
+                  // TODO: fix the problem of the dropdown menu item 'High' being hidden by keyboard when it is already set as 'Low'
+                  Container(
+                    padding: const EdgeInsets.only(left: 15),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border:
+                          Border.all(color: _priorityColorIndicator, width: 2),
+                    ),
+                    child: DropdownButton(
+                      items: _priorities,
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedPriorityValue = value;
+                        });
+                      },
+                      underline: Text(''),
+                      value: _selectedPriorityValue,
+                      style: TextStyle(
+                        color: _priorityColorIndicator,
+                        fontWeight: _priorityFontWeight,
+                        fontSize: 17,
+                      ),
+                      hint: Text(
+                        _selectedPriorityValue == 'low'
+                            ? '!'
+                            : _selectedPriorityValue == 'medium'
+                                ? '!!'
+                                : '!!!',
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                   RaisedButton(

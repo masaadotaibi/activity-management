@@ -8,6 +8,7 @@ import 'package:the_todo_app/models/subtask.dart';
 // 23 to show the tasks we have to bring their data from Firestore and then set that as a model and
 // bring it back to the personal folder
 class TaskModel {
+  String categoryId;
   String taskTitle;
   String taskId;
   DateTime dueDate;
@@ -16,9 +17,8 @@ class TaskModel {
   List<TaskModel> subtasks;
   List<Comment> comments;
 
-  TaskModel(
-      // TODO: add defualt values for some parameters if not provided
-      {
+  TaskModel({
+    @required this.categoryId,
     @required this.taskId,
     @required this.taskTitle,
     this.dueDate,
@@ -31,6 +31,7 @@ class TaskModel {
   // 24 now we set the model the model from Firestore database data
   TaskModel.fromJson(Map<String, dynamic> json) {
     taskId = json['taskId'];
+    categoryId = json['category'];
     taskTitle = json['taskTitle'];
     dueDate = json['dueDate'] == null
         ? null
@@ -50,12 +51,12 @@ class TaskModel {
         comments.add(new Comment.fromJson(Map<String, dynamic>.from(comment)));
       });
     }
-    // TODO: and category
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = Map<String, dynamic>();
     data['taskId'] = this.taskId;
+    data['category'] = this.categoryId;
     data['taskTitle'] = this.taskTitle;
     data['dueDate'] = this.dueDate;
     data['taskState'] = this.state;
@@ -72,17 +73,4 @@ class TaskModel {
 
   // 25 now we are going to stream the list of all the task models available in the database, so we have to get the
   // data from Firestore and model it here then use the controller to feed it back to the personal folder
-}
-
-enum Status {
-  Not_Started,
-  In_Progress,
-  Completed,
-  Overdue,
-}
-
-enum Priority {
-  High,
-  Medium,
-  Low,
 }

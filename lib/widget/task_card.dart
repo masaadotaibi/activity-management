@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/task.dart';
-import '../services/personal_folder_collection.dart';
 
 class TaskCard extends StatelessWidget {
   final String uid;

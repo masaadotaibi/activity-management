@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import './controllers/bindings/auth_binding.dart';
-import './screens/login.dart';
 import './utils/root.dart';
 
 void main() {
@@ -13,7 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      // 7 this binding to make the auth service available throughout the app
+      // this binding to make the auth service available throughout the app
       initialBinding: AuthBinding(),
       home: Root(),
       theme: ThemeData(

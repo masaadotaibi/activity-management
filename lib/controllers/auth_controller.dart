@@ -37,12 +37,20 @@ class AuthController extends GetxController {
         _authResult.user.email,
       );
 
+      print(
+          'create the user? and email ${_user.email} and uid ${_user.id} and name ${_user.name}');
+
       // 19.2 we then inject the created model to create it at Firestore database, and the function we use returns bool
       if (await PersonalFolderCollection().createNewUser(_user)) {
+        print('did it create the model?');
         // 19.3 since the above function returns a boolean, we can check if the user successfully created then we can assign the user
         // to the newly created model and this can be done this way (the setter we made earlier in Database())
         Get.find<UserController>().user =
             _user; // assign the current user to the newly created user
+
+        // // we create the default category, which is the first for which the user work with
+        // PersonalFolderCollection().createCategory(_user.id, 'Tasks list:');
+
         Get.back(); // this to pop off the sign up screen and go back to login screen
       }
     } catch (e) {
